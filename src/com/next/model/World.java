@@ -11,7 +11,7 @@ import java.util.List;
  * Created by dorinsuletea on 7/15/16.
  */
 public class World {
-    public static final int MAX_PRAY_COUNT = 50;
+    public static final int MAX_PRAY_COUNT = 1;
     public static final int MAX_PREDATOR_COUNT = 5;
     private int TICKS_PER_GENERATION = 200;
     private static final World instance = new World();
@@ -38,8 +38,8 @@ public class World {
     }
 
     public void makeRandomPray() {
-        double initX = Math.random() * Pray.maxX;
-        double initY = Math.random() * Pray.maxY;
+        double initX =  Pray.maxX/3;//Math.random() *;
+        double initY = Pray.maxY/3;//Math.random() * ;
         pray.add(new Pray(initX, initY));
     }
 

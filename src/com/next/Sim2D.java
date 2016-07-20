@@ -57,7 +57,7 @@ public class Sim2D {
             parseParams(inputParams);
         }    // figure out what options have been specified
         // make things to start
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < World.MAX_PREDATOR_COUNT; i++) {
             World.getInstance().makeRandomPredator();
         }
 
@@ -80,9 +80,7 @@ public class Sim2D {
     public void doLoop() throws InterruptedException {
         while (simulationTime <= runTime) {
             if (running) {
-                for (Thing th : World.getInstance().getAllThings()) {
-                    th.step();
-                }
+                World.getInstance().update();
 
                 if (paintOn) {
                     theFrame.showAll();
@@ -90,14 +88,10 @@ public class Sim2D {
                 } else {
                     theFrame.showInfoOnly();
                 }
-
-
                 if (makeMovie) {
                     checkJPEGWrite();
                     movieCounter++;
                 }
-
-
                 if (infoWrite) {
                     checkInfoWrite();
                     infoWriteCounter++;
@@ -105,11 +99,6 @@ public class Sim2D {
 
                 counter++;
                 simulationTime += deltaT;
-
-                World.getInstance().removeDead();
-                World.getInstance().trySpawnPray();
-
-
             } else {
                 Thread.sleep(200);
             }

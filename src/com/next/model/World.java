@@ -9,6 +9,8 @@ package com.next.model;
  * written permission is obtained from Metabiota Incorporated.
  *************************************************************************/
 
+import com.next.ai.GeneticAlgorithm;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -19,12 +21,17 @@ import java.util.List;
  */
 public class World {
     public static final int MAX_PRAY_COUNT = 50;
+    public static final int MAX_PREDATOR_COUNT = 5;
+    private int TICKS_PER_GENERATION = 200;
     private static final World instance = new World();
     private List<Predator> predators;
     private List<Pray> pray;
+    private int tickCount;
+    private int generationCount;
 
 
     private World() {
+        tickCount = 0;
         predators = new ArrayList<Predator>();
         pray = new ArrayList<Pray>();
     }
@@ -46,7 +53,7 @@ public class World {
     }
 
     public void trySpawnPray() {
-        if (Math.random() < Pray.spawnProb && pray.size()<MAX_PRAY_COUNT) {
+        if (pray.size() < MAX_PRAY_COUNT) {
             World.getInstance().makeRandomPray();
         }
     }
@@ -81,6 +88,27 @@ public class World {
             if (s.getIsDead()) {
                 j.remove();
             }
+        }
+    }
+
+    public void update() {
+        removeDead();
+        trySpawnPray();
+
+        tickCount++;
+        //current generation is having fun
+        if (tickCount < TICKS_PER_GENERATION) {
+            for (Thing thing : getAllThings()) {
+                thing.step();
+            }
+        } else {
+            System.out.println(generationCount++);
+            tickCount = 0;
+            //reproduce all predators and die out
+            GeneticAlgorithm algo = new GeneticAlgorithm();
+            List<Predator> newGeneration = algo.getNewGeneration(predators);
+            predators.clear();
+            predators.addAll(newGeneration);
         }
     }
 }

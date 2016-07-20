@@ -52,5 +52,13 @@ public abstract class Thing {
     public boolean getIsDead(){
         return isDead;
     }
+
+    public double getXpos(){
+        return xPos;
+    }
+
+    public double getYpos(){
+        return yPos;
+    }
 }
 

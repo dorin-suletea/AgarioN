@@ -78,7 +78,7 @@ public class Sim2D {
 
 
     public void doLoop() throws InterruptedException {
-        while (simulationTime <= runTime) {
+        while (true) {
             if (running) {
                 World.getInstance().update();
 

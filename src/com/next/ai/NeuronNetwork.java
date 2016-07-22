@@ -7,37 +7,35 @@ import java.util.List;
  * Created by dorinsuletea on 7/18/16.
  */
 
-public class NeuronNetwork {
+class NeuronNetwork {
     public static final int BIAS = -1;
     public static final int ACTIVATION_RESPONSE = 1;
-
-    public static final int INPUT_COUNT = 2;
+    public static final int INPUT_COUNT = 4;
     public static final int OUTPUT_COUNT = 2;
-    public static final int HIDDEN_LAYER_COUNT = 1;
-    public static final int NEURONS_PER_HIDDEN_LAYER = 6;
+    public static final int HIDDEN_LAYER_COUNT = 2;
+    public static final int NEURONS_PER_HIDDEN_LAYER = 8;
 
     private List<NeuronLayer> layers;
 
-    //each neuron from layer 0 is linked to each neuron from layer 1 .. etc
-    public NeuronNetwork() throws Exception {
+
+    NeuronNetwork() throws Exception {
+        //each neuron from layer 0 is linked to each neuron from layer 1 .. etc
         layers = new ArrayList<NeuronLayer>();
         if (HIDDEN_LAYER_COUNT <= 0) {
             throw new Exception("Must have hidden layer");
         }
         //create first hidden layer
         layers.add(new NeuronLayer(NEURONS_PER_HIDDEN_LAYER, INPUT_COUNT));
-
         // -1 since we already added one hidden layer
         for (int i = 0; i < HIDDEN_LAYER_COUNT - 1; ++i) {
             //hidden layers have the same input neuron count as the neurons
             layers.add(new NeuronLayer(NEURONS_PER_HIDDEN_LAYER, NEURONS_PER_HIDDEN_LAYER));
         }
-
         // make output layer
         layers.add(new NeuronLayer(OUTPUT_COUNT, NEURONS_PER_HIDDEN_LAYER));
     }
 
-    public void setWeights(List<Double> weights) {
+    void setWeights(List<Double> weights) {
         int weightIndex = 0;
         for (NeuronLayer layer : this.layers) {
             for (Neuron n : layer.neurons) {
@@ -49,35 +47,65 @@ public class NeuronNetwork {
                 n.inputWeights.clear();
                 n.inputWeights.addAll(newWeights);
             }
-
         }
     }
 
-    public List<Double> compute(List<Double> inputs) {
+    List<Double> computeDirection(List<Double> inputs) {
         List<Double> outputs = new ArrayList<Double>();
+        int cWeight = 0;
 
+        for (int i=0; i<HIDDEN_LAYER_COUNT + 1; ++i) {
+            if (i > 0) {
+                inputs.clear();
+                inputs.addAll(outputs);
+            }
+
+            outputs.clear();
+            cWeight = 0;
+
+            for (int j = 0; j < layers.get(i).neurons.size(); ++j) {
+                double netinput = 0;
+                int	NumInputs = layers.get(i).neurons.get(j).inputWeights.size();
+
+                //for each weight
+                for (int k=0; k<NumInputs - 1; ++k){
+                    //sum the weights x inputs
+                    netinput += layers.get(i).neurons.get(j).inputWeights.get(k) * inputs.get(cWeight++);
+                }
+                netinput += layers.get(i).neurons.get(j).inputWeights.get(NumInputs-1) *  BIAS;
+                outputs.add(sigmoid(netinput,ACTIVATION_RESPONSE));
+                cWeight = 0;
+            }
+
+        }
+
+
+        /*
         for (int j = 0; j < this.layers.size(); j++) {
             NeuronLayer layer = this.layers.get(j);
-
             //makes this recursive
             if (j > 0) {
                 inputs.clear();
                 inputs.addAll(outputs);
             }
 
+            outputs.clear();
+            cWeight = 0;
+
+
             for (Neuron neuron : layer.neurons) {
-                //the weight at last index is the bias
                 double netInput = 0;
                 for (int i = 0; i < neuron.inputWeights.size() - 1; i++) {
                     //sum the weights * inputs
-                    netInput += inputs.get(i) * neuron.inputWeights.get(i);
+                    netInput += inputs.get(cWeight++) * neuron.inputWeights.get(i);
                 }
+
                 // add in the bias
                 netInput += neuron.inputWeights.get(neuron.inputWeights.size() - 1) * BIAS;
                 outputs.add(sigmoid(netInput, ACTIVATION_RESPONSE));
             }
         }
-
+        */
         return outputs;
     }
 

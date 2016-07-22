@@ -11,61 +11,70 @@ import java.util.List;
  * Created by dorinsuletea on 7/20/16.
  */
 public class GeneticAlgorithm {
+    private static int FITTEST_SLICE_PERCENTAGE = 8; //25%
 
     public List<Predator> getNewGeneration(List<com.next.model.Predator> currentGeneration) {
-        //sort current generation by fitness
-        List<Predator> currentGenCoppy = new ArrayList<Predator>();
-        currentGenCoppy.addAll(currentGeneration);
-        Collections.sort(currentGenCoppy);
-
+        //Sort current generation by fitness + Replicate only the most fit ones
+        Collections.sort(currentGeneration);
         List<Predator> fittestPredators = new ArrayList<Predator>();
-        //replicate only the most fit ones
-        for (int i = currentGenCoppy.size() / 3; i < currentGenCoppy.size(); i++) {
-            fittestPredators.add(currentGenCoppy.get(i));
+        for (int i = currentGeneration.size() / FITTEST_SLICE_PERCENTAGE; i < currentGeneration.size(); i++) {
+            //add one to the list x fitness times
+            for (int j=0;j<currentGeneration.get(i).getBrain().getFitness()+1;j++) {
+                fittestPredators.add(currentGeneration.get(i));
+            }
         }
 
-        List<Predator> newPredators = new ArrayList<Predator>();
-        boolean mutatingHeavy = false;
-        if (fittestPredators.get(fittestPredators.size()-1).getBrain().getFitness()==0){
-            mutatingHeavy=true;
-            System.out.println("Mutate heavy");
-        }
+        System.out.println("Fittest entity : " + (fittestPredators.get(fittestPredators.size() - 1).getBrain().getFitness()));
 
-        for (int i = 0; i < World.MAX_PREDATOR_COUNT; i++) {
-            int parent1Index = 0 + (int) (Math.random() * fittestPredators.size());
-            int parent2Index = 0 + (int) (Math.random() * fittestPredators.size());
-            newPredators.add(crossOver(fittestPredators.get(parent1Index), fittestPredators.get(parent2Index),mutatingHeavy));
-        }
+
+        List<Predator> newPredators = makeNewGeneration(World.MAX_PREDATOR_COUNT,fittestPredators);
         return newPredators;
-
     }
 
-    private Predator crossOver(Predator parent1, Predator parent2, boolean mutateHeavy) {
-        int crossPoint = 0 + (int) (Math.random() * parent1.getBrain().getNetwork().getWeights().size());
+    private List<Predator> makeNewGeneration(int generationPopulation, List<Predator> fittestCurrentPredators) {
+        List<Predator> ret = new ArrayList<Predator>();
+        for (Predator p : fittestCurrentPredators){
+            //System.out.println("Combining predators { " + p.getBrain().getFitness() + "]");
+        }
 
+        for (int i = 0; i < generationPopulation; i++) {
+            int parent1Index = 0 + (int) (Math.random() * fittestCurrentPredators.size());
+            int parent2Index = 0 + (int) (Math.random() * fittestCurrentPredators.size());
+            Predator parent1 = fittestCurrentPredators.get(parent1Index);
+            Predator parent2 = fittestCurrentPredators.get(parent2Index);
+            ret.add(breed(parent1, parent2));
+        }
+
+        System.out.println("==================New Gen");
+        System.out.println(ret.get(0).getBrain().getNetwork().getWeights());
+        return ret;
+    }
+
+    private Predator breed(Predator parent1, Predator parent2) {
         List<Double> newWeights = new ArrayList<Double>();
-        for (int i = 0; i < crossPoint; i++) {
+        int cross =  (int) (Math.random() * parent1.getBrain().getNetwork().getWeights().size());
+
+        for (int i=0;i<cross;i++){
             newWeights.add(parent1.getBrain().getNetwork().getWeights().get(i));
         }
-        for (int i = crossPoint; i < parent1.getBrain().getNetwork().getWeights().size(); i++) {
+        for (int i=cross;i<parent2.getBrain().getNetwork().getWeights().size();i++){
             newWeights.add(parent2.getBrain().getNetwork().getWeights().get(i));
         }
 
+
         //random mutation
-        if (mutateHeavy) {
-            newWeights.clear();
-            for (int i =0;i < parent1.getBrain().getNetwork().getWeights().size(); i++) {
-                newWeights.add(Math.random());
+        //mutation chance 20 %
+        /*
+        if (Math.random()<0.5){
+            int nrOfMutations =(int) Math.random() * newWeights.size();
+            for (int i=0;i<nrOfMutations;i++){
+                int index= (int) Math.random() * newWeights.size();
+                newWeights.set(index,Math.random());
             }
-            //for (int i=0;i<parent1.getBrain().getNetwork().getWeights().size()/2;i++) {
-            //    int randomMutationIndex = 0 + (int) (Math.random() * newWeights.size());
-            //    Collections.replaceAll(newWeights, newWeights.get(randomMutationIndex), Math.random());
-            //}
-
         }
-
-        double initX = Predator.maxX/2;//Math.random() * Predator.maxX;
-        double initY = Predator.maxY/2;//Math.random() * Predator.maxY;
+        */
+        double initX = Math.random() * Predator.maxX;//Predator.maxX / 2;//;
+        double initY = Math.random() * Predator.maxY;//Predator.maxY / 2;//Math.random() * Predator.maxY;
         Predator offspring = new Predator(initX, initY);
         offspring.getBrain().getNetwork().setWeights(newWeights);
         return offspring;
